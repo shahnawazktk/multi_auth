@@ -89,33 +89,30 @@
     <div class="flex-1 flex flex-col overflow-hidden">
         
         <!-- Header -->
-        <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 shadow-sm">
-            <!-- Left: Menu Button & Search -->
-            <div class="flex items-center space-x-4">
-                <button @click="sidebarOpen = true" class="text-gray-600 hover:text-gray-900 focus:outline-none lg:hidden">
-                    <i class="fas fa-bars text-lg"></i>
+        <header class="h-20 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between px-6 lg:px-8 shadow-sm">
+            <div class="flex items-center">
+                <button @click="sidebarOpen = true" class="lg:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 focus:outline-none transition-colors">
+                    <i class="fas fa-bars text-xl"></i>
                 </button>
                 
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                        <i class="fas fa-search text-gray-400"></i>
-                    </span>
-                    <input class="w-48 pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all sm:w-64" 
-                           type="text" 
-                           placeholder="Search users, reports...">
-                </div>
+                
             </div>
 
-            <!-- Right: Notifications & User Menu -->
+            <!-- Header Actions -->
             <div class="flex items-center space-x-4">
-                <!-- Notifications -->
-                <div class="relative">
-                    <button class="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors">
-                        <i class="fas fa-bell"></i>
-                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                    </button>
+                <!-- Search -->
+                <div class="hidden md:block relative">
+                    <input type="text" placeholder="Search..." class="pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-64">
+                    <i class="fas fa-search absolute left-3 top-3.5 text-gray-400 text-sm"></i>
                 </div>
-
+                
+                <!-- Notifications -->
+                <button class="relative p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors">
+                    <i class="fas fa-bell text-xl"></i>
+                    <span class="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full notification-dot"></span>
+                </button>
+                
+                <!-- User Profile -->
                 <!-- User Menu Dropdown -->
                 <div class="relative" x-data="{ open: false }">
                     <button @click="open = !open" class="flex items-center space-x-3 focus:outline-none">
@@ -163,8 +160,10 @@
                         </form>
                     </div>
                 </div>
+            
             </div>
         </header>
+
 
         <!-- Main Content Area -->
         <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
