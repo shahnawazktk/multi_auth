@@ -1,149 +1,421 @@
 <!DOCTYPE html>
-<html lang="en" x-data="{ sidebarOpen: false }">
+<html lang="en" x-data="{ sidebarOpen: false, darkMode: false, activeTab: 'overview' }">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Dashboard</title>
+    <title>MySpace Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Plus Jakarta Sans', sans-serif; } </style>
-</head>
-<body class="bg-slate-50 text-slate-900">
-
-<div class="flex h-screen overflow-hidden">
-
-    <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 z-20 bg-slate-900/60 backdrop-blur-sm lg:hidden transition-opacity"></div>
-
-    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" 
-           class="fixed inset-y-0 left-0 z-30 w-72 bg-white border-r border-slate-200 transition duration-300 transform lg:translate-x-0 lg:static lg:inset-0 shadow-sm">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark-bg: #0f172a;
+            --dark-card: #1e293b;
+        }
         
-        <div class="flex items-center px-8 py-6 border-b border-slate-100">
-            <div class="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        
+        body {
+            transition: background-color 0.3s ease;
+        }
+        
+        body.dark-mode {
+            background-color: var(--dark-bg);
+            color: #e2e8f0;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .dark-mode .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .sidebar-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-ring {
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        }
+        
+        .dark-mode .stat-card::before {
+            background: linear-gradient(90deg, var(--primary-light), #8b5cf6);
+        }
+        
+        .tab-active {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .dark-mode .tab-active {
+            background-color: rgba(99, 102, 241, 0.2);
+        }
+        
+        .notification-dot {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        
+        .mobile-menu {
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body :class="darkMode ? 'dark-mode' : ''" class="bg-gray-50 text-gray-800">
+
+<div class="flex min-h-screen">
+
+    <!-- Mobile Sidebar Overlay -->
+    <div x-show="sidebarOpen" @click="sidebarOpen = false" 
+         class="fixed inset-0 z-40 bg-black/50 lg:hidden transition-opacity duration-300"
+         x-transition:enter="transition-opacity ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"></div>
+
+    <!-- Sidebar -->
+    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" 
+           class="sidebar-transition fixed inset-y-0 left-0 z-50 w-80 bg-white dark:bg-slate-900 border-r border-gray-100 dark:border-slate-800 lg:translate-x-0 lg:static lg:inset-0 mobile-menu">
+        
+        <!-- Logo & User Info -->
+        <div class="p-6 border-b border-gray-100 dark:border-slate-800">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="h-12 w-12 gradient-bg rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-user-cog text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900 dark:text-white">User</h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Dashboard</p>
+                    </div>
+                </div>
+                <button @click="darkMode = !darkMode" class="p-2 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">
+                    <i x-show="!darkMode" class="fas fa-moon"></i>
+                    <i x-show="darkMode" class="fas fa-sun"></i>
+                </button>
             </div>
-            <span class="ml-3 text-xl font-bold tracking-tight text-slate-800">MySpace</span>
+            
+            
         </div>
 
-        <nav class="mt-8 px-4 space-y-1">
-            <a href="#" class="flex items-center px-4 py-3 bg-indigo-50 text-indigo-700 rounded-xl font-semibold transition-all">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                My Dashboard
+        <!-- Navigation -->
+        <nav class="p-4 space-y-2">
+            <a href="#" @click="activeTab = 'overview'" :class="activeTab === 'overview' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-l-4 border-indigo-500' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800'"
+               class="flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200">
+                <i class="fas fa-chart-pie w-5 text-center"></i>
+                <span>Overview</span>
             </a>
             
-            <a href="#" class="flex items-center px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-xl transition-all group">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                My Profile
+            <a href="#" @click="activeTab = 'profile'" :class="activeTab === 'profile' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-l-4 border-indigo-500' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800'"
+               class="flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200">
+                <i class="fas fa-user-edit w-5 text-center"></i>
+                <span>My Profile</span>
+                <span class="ml-auto px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 text-xs font-semibold rounded-full">85%</span>
             </a>
-
-            <a href="#" class="flex items-center px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-xl transition-all group">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                Orders / Activity
+            
+            <a href="#" @click="activeTab = 'projects'" :class="activeTab === 'projects' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-l-4 border-indigo-500' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800'"
+               class="flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200">
+                <i class="fas fa-tasks w-5 text-center"></i>
+                <span>Projects</span>
+                <span class="ml-auto px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 text-xs font-semibold rounded-full">14</span>
             </a>
-
-            <a href="#" class="flex items-center px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-xl transition-all group">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                Notifications
+            
+            <a href="#" @click="activeTab = 'analytics'" :class="activeTab === 'analytics' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-l-4 border-indigo-500' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800'"
+               class="flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200">
+                <i class="fas fa-chart-line w-5 text-center"></i>
+                <span>Analytics</span>
             </a>
+            
+            <a href="#" @click="activeTab = 'notifications'" :class="activeTab === 'notifications' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-l-4 border-indigo-500' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800'"
+               class="flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200">
+                <i class="fas fa-bell w-5 text-center"></i>
+                <span>Notifications</span>
+                <span class="ml-auto notification-dot h-2 w-2 bg-red-500 rounded-full"></span>
+            </a>
+            
+            <a href="#" @click="activeTab = 'settings'" :class="activeTab === 'settings' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-l-4 border-indigo-500' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800'"
+               class="flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200">
+                <i class="fas fa-cog w-5 text-center"></i>
+                <span>Settings</span>
+            </a>
+            <a href="#" @click="activeTab = 'Help & Support'" :class="activeTab === 'Help & Support' ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-l-4 border-indigo-500' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800'"
+               class="flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200">
+                <i class="fas fa-question-circle"></i>
+                <span>Help & Support</span>
+            </a>
+            
+            
         </nav>
 
-        <div class="absolute bottom-0 w-full p-4 border-t border-slate-100">
+        <!-- Progress Section -->
+        
+
+        <!-- Logout Button -->
+        <div class="absolute bottom-0 w-full p-6 border-t border-gray-100 dark:border-slate-800">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button class="w-full flex items-center justify-center px-4 py-3 text-sm font-semibold text-red-500 bg-red-50 hover:bg-red-100 rounded-xl transition-all">
-                    Sign Out
+                <button class="w-full flex items-center justify-center space-x-2 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sign Out</span>
                 </button>
             </form>
         </div>
     </aside>
 
+    <!-- Main Content -->
     <div class="flex-1 flex flex-col overflow-hidden">
         
-        <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-sm">
+        <!-- Header -->
+        <header class="h-20 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between px-6 lg:px-8 shadow-sm">
             <div class="flex items-center">
-                <button @click="sidebarOpen = true" class="text-slate-500 lg:hidden focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                <button @click="sidebarOpen = true" class="lg:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 focus:outline-none transition-colors">
+                    <i class="fas fa-bars text-xl"></i>
                 </button>
-                <h2 class="ml-4 lg:ml-0 text-xl font-bold text-slate-800">Overview</h2>
+                
+                
             </div>
 
-            <div class="flex items-center gap-4">
-                <div class="hidden sm:flex flex-col text-right">
-                    <span class="text-sm font-bold text-slate-800">{{ Auth::user()->name }}</span>
-                    <span class="text-xs text-slate-500 italic">Premium Member</span>
+            <!-- Header Actions -->
+            <div class="flex items-center space-x-4">
+                <!-- Search -->
+                <div class="hidden md:block relative">
+                    <input type="text" placeholder="Search..." class="pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-64">
+                    <i class="fas fa-search absolute left-3 top-3.5 text-gray-400 text-sm"></i>
                 </div>
-                <img class="h-10 w-10 rounded-full border-2 border-indigo-100 object-cover" src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}&background=6366f1&color=fff" alt="User">
-            </div>
-            <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
+                
+                <!-- Notifications -->
+                <button class="relative p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors">
+                    <i class="fas fa-bell text-xl"></i>
+                    <span class="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full notification-dot"></span>
+                </button>
+                
+                <!-- User Profile -->
+                <!-- User Menu Dropdown -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" class="flex items-center space-x-3 focus:outline-none">
+                        <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+                            ZK
+                        </div>
+                        <div class="hidden md:block text-left">
+                            <p class="text-sm font-medium text-gray-700">Zeeshan Khan</p>
+                            <p class="text-xs text-gray-500">Super Admin</p>
+                        </div>
+                        <i class="fas fa-chevron-down text-gray-500 text-sm"></i>
+                    </button>
 
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
-                </form>
+                    <!-- Dropdown Menu -->
+                    <div x-show="open" 
+                         @click.away="open = false"
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="transform opacity-0 scale-95"
+                         x-transition:enter-end="transform opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="transform opacity-100 scale-100"
+                         x-transition:leave-end="transform opacity-0 scale-95"
+                         class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                        
+                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-user mr-3 text-gray-500"></i>
+                            My Profile
+                        </a>
+                        
+                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-cog mr-3 text-gray-500"></i>
+                            Account Settings
+                        </a>
+                        
+                        <div class="border-t border-gray-100 my-1"></div>
+                        
+                        <!-- Logout Form -->
+                        <form method="POST" action="{{ route('logout') }}" class="w-full">
+                            @csrf
+                            <button type="submit" 
+                                    class="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700">
+                                <i class="fas fa-sign-out-alt mr-3"></i>
+                                Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            
+            </div>
         </header>
 
-        <main class="flex-1 overflow-x-hidden overflow-y-auto p-8">
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto p-6 lg:p-8">
             
-            <div class="bg-indigo-700 rounded-3xl p-8 mb-8 text-white relative overflow-hidden shadow-2xl shadow-indigo-200">
-                <div class="relative z-10 max-w-lg">
-                    <h1 class="text-3xl font-bold mb-2">Hello, {{ explode(' ', Auth::user()->name)[0] }}! 👋</h1>
-                    <p class="text-indigo-100 text-lg">Welcome back! You have 3 new notifications and your profile is 85% complete.</p>
-                    <button class="mt-6 px-6 py-2.5 bg-white text-indigo-700 font-bold rounded-xl text-sm hover:bg-indigo-50 transition-colors">
-                        Complete Profile
-                    </button>
-                </div>
-                <div class="absolute right-0 top-0 h-full w-1/3 bg-white/10 -skew-x-12 transform translate-x-12"></div>
-            </div>
+            
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                    <div class="text-slate-500 text-sm font-semibold mb-1">Account Balance</div>
-                    <div class="text-2xl font-bold text-slate-800">$2,450.00</div>
-                    <div class="mt-2 text-xs text-green-500 font-bold flex items-center">
-                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z"></path></svg>
-                        +12.5% this month
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stat-card bg-white dark:bg-slate-800 p-6 rounded-2xl card-shadow fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                            <i class="fas fa-wallet text-blue-600 dark:text-blue-400 text-xl"></i>
+                        </div>
+                        <span class="text-xs font-semibold px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded-full">
+                            <i class="fas fa-arrow-up mr-1"></i> 12.5%
+                        </span>
+                    </div>
+                    <div class="text-gray-500 dark:text-gray-400 text-sm font-semibold mb-1">Account Balance</div>
+                    <div class="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2">$2,450.00</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Updated just now</div>
+                </div>
+
+                <div class="stat-card bg-white dark:bg-slate-800 p-6 rounded-2xl card-shadow fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
+                            <i class="fas fa-tasks text-purple-600 dark:text-purple-400 text-xl"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Active</span>
+                    </div>
+                    <div class="text-gray-500 dark:text-gray-400 text-sm font-semibold mb-1">Active Projects</div>
+                    <div class="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2">14</div>
+                    <div class="w-full bg-gray-100 dark:bg-slate-700 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" style="width: 65%"></div>
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                    <div class="text-slate-500 text-sm font-semibold mb-1">Active Projects</div>
-                    <div class="text-2xl font-bold text-slate-800">14</div>
-                    <div class="mt-2 w-full bg-slate-100 rounded-full h-1.5">
-                        <div class="bg-indigo-600 h-1.5 rounded-full" style="width: 65%"></div>
+                <div class="stat-card bg-white dark:bg-slate-800 p-6 rounded-2xl card-shadow fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
+                            <i class="fas fa-clock text-amber-600 dark:text-amber-400 text-xl"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">This Week</span>
+                    </div>
+                    <div class="text-gray-500 dark:text-gray-400 text-sm font-semibold mb-1">Time Spent</div>
+                    <div class="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2">42h 15m</div>
+                    <div class="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                        <i class="fas fa-trend-up mr-1"></i> 18% increase
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                    <div class="text-slate-500 text-sm font-semibold mb-1">Time Spent</div>
-                    <div class="text-2xl font-bold text-slate-800">42h 15m</div>
-                    <div class="mt-2 text-xs text-slate-400 italic font-medium">Weekly productivity</div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-slate-50 flex justify-between items-center">
-                    <h3 class="font-bold text-slate-800 text-lg">Your Dashboard Activity</h3>
-                    <select class="bg-slate-50 border-none text-sm font-semibold rounded-lg text-slate-500 outline-none p-2">
-                        <option>This Week</option>
-                        <option>Last Month</option>
-                    </select>
-                </div>
-                <div class="p-8 flex flex-col items-center justify-center text-center">
-                    <div class="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                        <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                <div class="stat-card bg-white dark:bg-slate-800 p-6 rounded-2xl card-shadow fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
+                            <i class="fas fa-users text-emerald-600 dark:text-emerald-400 text-xl"></i>
+                        </div>
+                        <span class="text-xs font-semibold px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 rounded-full">
+                            <i class="fas fa-user-plus mr-1"></i> 3 new
+                        </span>
                     </div>
-                    <h4 class="text-slate-800 font-bold">No new messages</h4>
-                    <p class="text-slate-500 text-sm mt-1 max-w-xs">Everything is up to date! Check back later for new updates on your account.</p>
+                    <div class="text-gray-500 dark:text-gray-400 text-sm font-semibold mb-1">Team Members</div>
+                    <div class="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2">24</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Across 4 projects</div>
                 </div>
             </div>
 
+            
+            
+            <!-- Bottom Stats -->
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm opacity-90">Team Productivity</p>
+                            <p class="text-2xl font-bold mt-1">87%</p>
+                        </div>
+                        <i class="fas fa-chart-line text-3xl opacity-80"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm opacity-90">Goals Completed</p>
+                            <p class="text-2xl font-bold mt-1">12/15</p>
+                        </div>
+                        <i class="fas fa-flag-checkered text-3xl opacity-80"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm opacity-90">Satisfaction Rate</p>
+                            <p class="text-2xl font-bold mt-1">94%</p>
+                        </div>
+                        <i class="fas fa-smile-beam text-3xl opacity-80"></i>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 </div>
+
+<script>
+    // Initialize dashboard functionality
+    document.addEventListener('alpine:init', () => {
+        // Any additional Alpine.js functionality can be added here
+    });
+    
+    // Auto-hide mobile sidebar on larger screens
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 1024) {
+            sidebarOpen = false;
+        }
+    });
+</script>
 
 </body>
 </html>
