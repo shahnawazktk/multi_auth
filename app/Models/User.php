@@ -45,4 +45,41 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin()
+    {
+        // ये check करने के लिए कि user admin है या नहीं
+        // आपके database structure पर depend करता है
+        
+        // Method 1: अगर आपके पास 'role' column है
+        if (isset($this->role)) {
+            return $this->role === 'admin' || $this->role === 'administrator';
+        }
+        
+        // Method 2: अगर आपके पास 'is_admin' column है
+        if (isset($this->is_admin)) {
+            return (bool) $this->is_admin;
+        }
+        
+        // Method 3: अगर आपके पास 'type' column है
+        if (isset($this->type)) {
+            return $this->type === 'admin';
+        }
+        
+        // Default: false return करें
+        return false;
+    }
+
+    /**
+     * Check if user has any role
+     */
+    public function hasRole($role)
+    {
+        if (isset($this->role)) {
+            return $this->role === $role;
+        }
+        return false;
+    }
 }

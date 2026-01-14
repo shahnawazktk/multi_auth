@@ -115,52 +115,112 @@
                 <!-- User Profile -->
                 <!-- User Menu Dropdown -->
                 <div class="relative" x-data="{ open: false }">
-                    <button @click="open = !open" class="flex items-center space-x-3 focus:outline-none">
-                        <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-                            ZK
-                        </div>
-                        <div class="hidden md:block text-left">
-                            <p class="text-sm font-medium text-gray-700">Zeeshan Khan</p>
-                            <p class="text-xs text-gray-500">Super Admin</p>
-                        </div>
-                        <i class="fas fa-chevron-down text-gray-500 text-sm"></i>
-                    </button>
-
-                    <!-- Dropdown Menu -->
-                    <div x-show="open" 
-                         @click.away="open = false"
-                         x-transition:enter="transition ease-out duration-100"
-                         x-transition:enter-start="transform opacity-0 scale-95"
-                         x-transition:enter-end="transform opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-75"
-                         x-transition:leave-start="transform opacity-100 scale-100"
-                         x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                        
-                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            <i class="fas fa-user mr-3 text-gray-500"></i>
-                            My Profile
-                        </a>
-                        
-                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            <i class="fas fa-cog mr-3 text-gray-500"></i>
-                            Account Settings
-                        </a>
-                        
-                        <div class="border-t border-gray-100 my-1"></div>
-                        
-                        <!-- Logout Form -->
-                        <form method="POST" action="{{ route('logout') }}" class="w-full">
-                            @csrf
-                            <button type="submit" 
-                                    class="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700">
-                                <i class="fas fa-sign-out-alt mr-3"></i>
-                                Logout
-                            </button>
-                        </form>
-                    </div>
+    <button @click="open = !open" class="flex items-center space-x-3 focus:outline-none hover:opacity-80 transition-opacity">
+        <!-- Avatar with Profile Picture or Initials -->
+        @auth
+            @if(Auth::user()->profile_photo_path)
+                <img class="w-9 h-9 rounded-full object-cover border-2 border-white dark:border-gray-800 shadow-sm" 
+                     src="{{ Storage::url(Auth::user()->profile_photo_path) }}" 
+                     alt="{{ Auth::user()->name }}">
+            @elseif(Auth::user()->avatar_url)
+                <img class="w-9 h-9 rounded-full object-cover border-2 border-white dark:border-gray-800 shadow-sm" 
+                     src="{{ Auth::user()->avatar_url }}" 
+                     alt="{{ Auth::user()->name }}">
+            @else
+                @php
+                    $name = Auth::user()->name;
+                    $bgColor = 'bg-gradient-to-r from-blue-500 to-purple-600';
+                    // Different colors based on user ID for variety
+                    $userId = Auth::id();
+                    $colors = [
+                        'from-blue-500 to-cyan-500',
+                        'from-purple-500 to-pink-500',
+                        'from-green-500 to-emerald-500',
+                        'from-orange-500 to-red-500',
+                        'from-indigo-500 to-blue-500'
+                    ];
+                    $bgColor = $colors[$userId % count($colors)] ?? 'from-blue-500 to-purple-600';
+                @endphp
+                <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold {{ $bgColor }} shadow-sm">
+                    {{ strtoupper(substr($name, 0, 2)) }}
                 </div>
+            @endif
+        @endauth
+        
+        <div class="hidden md:block text-left">
+            @auth
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ Auth::user()->name }}</p>
+                @if(Auth::user()->email)
+                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[150px]">{{ Auth::user()->email }}</p>
+                @endif
+            @endauth
+        </div>
+        <i class="fas fa-chevron-down text-gray-500 dark:text-gray-400 text-sm transition-transform" :class="open ? 'rotate-180' : ''"></i>
+    </button>
+
+    <!-- Dropdown Menu -->
+    <div x-show="open" 
+         @click.away="open = false"
+         x-transition:enter="transition ease-out duration-100"
+         x-transition:enter-start="transform opacity-0 scale-95"
+         x-transition:enter-end="transform opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-75"
+         x-transition:leave-start="transform opacity-100 scale-100"
+         x-transition:leave-end="transform opacity-0 scale-95"
+         class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50 overflow-hidden">
+        
+        <!-- User Info in Dropdown -->
+        <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+            <div class="flex items-center space-x-3">
+                @auth
+                    @if(Auth::user()->profile_photo_path || Auth::user()->avatar_url)
+                        <img class="w-10 h-10 rounded-full object-cover" 
+                             src="{{ Auth::user()->profile_photo_path ? Storage::url(Auth::user()->profile_photo_path) : Auth::user()->avatar_url }}" 
+                             alt="{{ Auth::user()->name }}">
+                    @else
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                            {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                        </div>
+                    @endif
+                    <div>
+                        <p class="font-medium text-gray-900 dark:text-white">{{ Auth::user()->name }}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ Auth::user()->email }}</p>
+                    </div>
+                @endauth
+            </div>
+        </div>
+        
+        <div class="py-1">
+            <a href="{{ route('dashboard') }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <i class="fas fa-tachometer-alt mr-3 text-gray-500 w-5 text-center"></i>
+                Dashboard
+            </a>
             
+            <a href="3" class="flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <i class="fas fa-user-circle mr-3 text-gray-500 w-5 text-center"></i>
+                My Profile
+            </a>
+            
+            <a href="{{ route('profile.edit') }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <i class="fas fa-cog mr-3 text-gray-500 w-5 text-center"></i>
+                Settings
+            </a>
+            
+            
+        </div>
+        
+        <div class="border-t border-gray-100 dark:border-gray-700 pt-1">
+            <form method="POST" action="{{ route('logout') }}" class="w-full">
+                @csrf
+                <button type="submit" 
+                        class="flex items-center w-full px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+                    <i class="fas fa-sign-out-alt mr-3 w-5 text-center"></i>
+                    Logout
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
             </div>
         </header>
 
